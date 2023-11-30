@@ -18,7 +18,22 @@ def connection():
     except mysql.connector.Error as e:
         print("Error connecting to the database:", e)
         return None
-
+#thêm sinh viên
+def add_sinhvien(ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop):
+    conn = connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO sinhvien (ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop))
+        conn.commit()
+        conn.close()
+        messagebox.showinfo("Thông báo", "Thêm sinh viên thành công")
+    except mysql.connector.Error as e:
+        print("Error adding data to database:", e)
+        conn.rollback()
+        conn.close()
 #Điểm học phần Start################################################################################
 
 def view_diemhocphan():
@@ -219,8 +234,6 @@ def view_Diemhp_details(student_info):
 
         # Đóng cửa sổ chi tiết sau khi cập nhật
         details_window.destroy()
-
-
     # Nút cập nhật điểm
     update_button = Button(details_window, text="Cập nhật điểm", command=update_grade, width=20)
     update_button.grid(row=8, column=1, padx=10, pady=10)
@@ -297,8 +310,6 @@ def add_diemhocphan(ma_sv, ma_mon, diem_giua_ky, diem_thi_hp):
         print("Thêm thất bại", e)
         conn.rollback()
         conn.close()
-
-
 #Điểm học phần END ################################################################################
 
 #Sinh viên Start#########################################################
@@ -370,6 +381,7 @@ def get_ma_mon_values():
     if conn:
         try:
             cur = conn.cursor()
+            cur = conn.cursor()
             cur.execute("SELECT DISTINCT ma_mon FROM monhocphan")
             ma_mon_values = [row[0] for row in cur.fetchall()]
             return ma_mon_values
@@ -412,7 +424,6 @@ def update_info_window():
 
     # Nút "Update" trong cửa sổ cập nhật
     Button(update_window, text="Update", command=clse, width=20).grid(row=5, column=1, padx=10, pady=10) 
-
 def xuat_tatca_sinhvien_diem():
     workbook = Workbook()
     global add_window 
@@ -452,38 +463,118 @@ def xuat_tatca_sinhvien_diem():
     print(f"Excel file '{excel_filename}' exported successfully!")
 def clse():
     sys.exit() 
+def add_sinhvien_window():
+    add_window = Toplevel(root)
+    add_window.title("Thêm Sinh Viên")
 
+    Label(add_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
+    ma_sv_entry = Entry(add_window, width=40)
+    ma_sv_entry.grid(row=0, column=1, padx=10, pady=5)
 
-if __name__=="__main__":
-    root=Tk()
+    Label(add_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
+    hoten_sv_entry = Entry(add_window, width=40)
+    hoten_sv_entry.grid(row=1, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Ngày sinh (YYYY-MM-DD):").grid(row=2, column=0, padx=10, pady=5)
+    ngay_sinh_entry = Entry(add_window, width=40)
+    ngay_sinh_entry.grid(row=2, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Giới tính (Nam/Nữ):").grid(row=3, column=0, padx=10, pady=5)
+    gioi_tinh_entry = Entry(add_window, width=40)
+    gioi_tinh_entry.grid(row=3, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Dân tộc:").grid(row=4, column=0, padx=10, pady=5)
+    dan_toc_entry = Entry(add_window, width=40)
+    dan_toc_entry.grid(row=4, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Nơi sinh:").grid(row=5, column=0, padx=10, pady=5)
+    noi_sinh_entry = Entry(add_window, width=40)
+    noi_sinh_entry.grid(row=5, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
+    ma_lop_entry = Entry(add_window, width=40)
+    ma_lop_entry.grid(row=6, column=1, padx=10, pady=5)
+
+    add_button = Button(add_window, text="Thêm Sinh Viên", command=lambda: add_sinhvien(
+        ma_sv_entry.get(), hoten_sv_entry.get(), ngay_sinh_entry.get(),
+        gioi_tinh_entry.get(), dan_toc_entry.get(), noi_sinh_entry.get(), ma_lop_entry.get()
+    ), width=20)
+    add_button.grid(row=7, column=1, padx=10, pady=10)
+    # update_info_window()
+# Hãy thay đổi màu sắc cho các nút button trong hàm main:
+if __name__ == "__main__":
+    root = Tk()
     root.title("Quản lý điểm sinh viên")
-    
-    t1=Text(root,width=140,height=25)
-    t1.grid(row=0,column=1,rowspan=26, padx=10)
-    def change_color(button):
-        button['bg'] = 'blue'
 
-    b1=Button(root,text="Danh sách sinh viên",command=view_sinhvien,width=40)
-    b1.grid(row=0,column=0)
+    # ... (các dòng code khác)
 
-    b2=Button(root,text="Danh sách lớp",command=update_info_window,width=40)
-    b2.grid(row=1,column=0)
+    # Đặt màu sắc và font cho các nút button
+    button_color = '#3498db'  # Màu xanh dương
+    button_font = ('Arial', 12)
 
-    b3=Button(root,text="Danh sách học phần",command=view_diemhocphan,width=40)
-    b3.grid(row=2,column=0)
+    # Danh sách sinh viên
+    b1 = Button(root, text="Danh sách sinh viên", command=view_sinhvien, width=40)
+    b1.grid(row=0, column=0)
+    b1.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
 
-    b4=Button(root,text="Danh sách điểm học phần",command=view_diemhocphan,width=40)
-    b4.grid(row=3,column=0)
-    b8=Button(root,text="Xuất excel",command=xuat_tatca_sinhvien_diem,width=40)
-    b8.grid(row=4,column=0)
-    b7=Button(root,text="Đóng ứng dụng",command=clse,width=40)
-    b7.grid(row=23,column=0)
-    b7['bg'] = 'red'
-    # b1['bg'] = 'blue'
-    # b2['bg'] = 'blue'
-    # b4['bg'] = 'blue'
-    # b3['bg'] = 'blue'
-    # b8['bg'] = 'blue'
+    # Thêm sinh viên
+    b2 = Button(root, text="Thêm sinh viên", command=add_sinhvien_window, width=40)
+    b2.grid(row=1, column=0)
+    b2.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
+
+    # Danh sách học phần
+    b3 = Button(root, text="Danh sách học phần", command=view_diemhocphan, width=40)
+    b3.grid(row=2, column=0)
+    b3.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
+
+    # Danh sách điểm học phần
+    b4 = Button(root, text="Danh sách điểm học phần", command=view_diemhocphan, width=40)
+    b4.grid(row=3, column=0)
+    b4.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
+
+    # Xuất excel
+    b8 = Button(root, text="Xuất excel", command=xuat_tatca_sinhvien_diem, width=40)
+    b8.grid(row=4, column=0)
+    b8.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
+
+    # Đóng ứng dụng
+    b7 = Button(root, text="Đóng ứng dụng", command=clse, width=40)
+    b7.grid(row=23, column=0)
+    b7.config(bg='red', fg='white', font=button_font)  # Cấu hình màu và font
 
     root.resizable(False, False)
     root.mainloop()
+#cách 2 
+# if __name__=="__main__":
+#     root=Tk()
+#     root.title("Quản lý điểm sinh viên")
+    
+#     t1=Text(root,width=140,height=25)
+#     t1.grid(row=0,column=1,rowspan=26, padx=10)
+#     def change_color(button):
+#         button['bg'] = 'blue'
+
+#     b1=Button(root,text="Danh sách sinh viên",command=view_sinhvien,width=40)
+#     b1.grid(row=0,column=0)
+
+#     b2=Button(root,text="Thêm sinh viên",command=add_sinhvien_window,width=40)
+#     b2.grid(row=1,column=0)
+
+#     b3=Button(root,text="Danh sách học phần",command=view_diemhocphan,width=40)
+#     b3.grid(row=2,column=0)
+
+#     b4=Button(root,text="Danh sách điểm học phần",command=view_diemhocphan,width=40)
+#     b4.grid(row=3,column=0)
+#     b8=Button(root,text="Xuất excel",command=xuat_tatca_sinhvien_diem,width=40)
+#     b8.grid(row=4,column=0)
+#     b7=Button(root,text="Đóng ứng dụng",command=clse,width=40)
+#     b7.grid(row=23,column=0)
+#     b7['bg'] = 'red'
+#     # b1['bg'] = 'blue'
+#     # b2['bg'] = 'blue'
+#     # b4['bg'] = 'blue'
+#     # b3['bg'] = 'blue'
+#     # b8['bg'] = 'blue'
+
+#     root.resizable(False, False)
+#     root.mainloop()
