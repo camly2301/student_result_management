@@ -67,6 +67,69 @@ def delete_sinhvien(ma_sv):
         conn.rollback()
         conn.close()
 #end
+# # sửa thôn tin sinh viên
+# def update_sinhvien(student_info):
+#     update_window = Toplevel(root)
+#     update_window.title("Sửa thông tin sinh viên")
+
+#     # Hiển thị thông tin sinh viên trong cửa sổ sửa đổi
+#     Label(update_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
+#     ma_sv_entry = Entry(update_window, width=40)
+#     ma_sv_entry.grid(row=0, column=1, padx=10, pady=5)
+#     ma_sv_entry.insert(0, student_info[0])  # Hiển thị giá trị hiện tại
+
+#     Label(update_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
+#     ho_ten_sv_entry = Entry(update_window, width=40)
+#     ho_ten_sv_entry.grid(row=1, column=1, padx=10, pady=5)
+#     ho_ten_sv_entry.insert(0, student_info[1])  # Hiển thị giá trị hiện tại
+
+#     Label(update_window, text="Ngày sinh:").grid(row=2, column=0, padx=10, pady=5)
+#     ngay_sinh_entry = Entry(update_window, width=40)
+#     ngay_sinh_entry.grid(row=2, column=1, padx=10, pady=5)
+#     ngay_sinh_entry.insert(0, student_info[2])  # Hiển thị giá trị hiện tại
+
+#     Label(update_window, text="Giới tính:").grid(row=3, column=0, padx=10, pady=5)
+#     gioi_tinh_entry = Entry(update_window, width=40)
+#     gioi_tinh_entry.grid(row=3, column=1, padx=10, pady=5)
+#     gioi_tinh_entry.insert(0, student_info[3])  # Hiển thị giá trị hiện tại
+
+#     Label(update_window, text="Dân tộc:").grid(row=4, column=0, padx=10, pady=5)
+#     dan_toc_entry = Entry(update_window, width=40)
+#     dan_toc_entry.grid(row=4, column=1, padx=10, pady=5)
+#     dan_toc_entry.insert(0, student_info[4])  # Hiển thị giá trị hiện tại
+
+#     Label(update_window, text="Nơi sinh:").grid(row=5, column=0, padx=10, pady=5)
+#     noi_sinh_entry = Entry(update_window, width=40)
+#     noi_sinh_entry.grid(row=5, column=1, padx=10, pady=5)
+#     noi_sinh_entry.insert(0, student_info[5])  # Hiển thị giá trị hiện tại
+
+#     # Hàm cập nhật thông tin sinh viên
+#     def update_student():
+#         new_ma_sv = ma_sv_entry.get()
+#         new_ho_ten_sv = ho_ten_sv_entry.get()
+#         new_ngay_sinh = ngay_sinh_entry.get()
+#         new_gioi_tinh = gioi_tinh_entry.get()
+#         new_dan_toc = dan_toc_entry.get()
+#         new_noi_sinh = noi_sinh_entry.get()
+
+#         # Thực hiện cập nhật thông tin vào cơ sở dữ liệu
+#         conn = connection()
+#         cur = conn.cursor()
+#         cur.execute("UPDATE sinhvien SET ho_ten_sv=%s, ngay_sinh=%s, gioi_tinh=%s, dan_toc=%s, noi_sinh=%s WHERE ma_sv=%s",
+#                     (new_ho_ten_sv, new_ngay_sinh, new_gioi_tinh, new_dan_toc, new_noi_sinh, new_ma_sv))
+#         conn.commit()
+#         conn.close()
+
+#         # Cập nhật lại giao diện hoặc hiển thị thông báo cập nhật thành công
+#         # ...
+
+#         # Đóng cửa sổ sau khi cập nhật
+#         update_window.destroy()
+
+#     # Nút cập nhật thông tin
+#     update_button = Button(update_window, text="Cập nhật", command=update_student, width=20)
+#     update_button.grid(row=6, column=1, padx=10, pady=10)
+
 #Điểm học phần Start################################################################################
 
 def view_diemhocphan():
@@ -163,22 +226,46 @@ def view_diemhocphan_details(student_info):
     # Hiển thị thông tin chi tiết của dòng được chọn
     Label(details_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
     Label(details_window, text=student_info[0]).grid(row=0, column=1, padx=10, pady=5)
+    # midterm_entry = Entry(details_window)
+    # midterm_entry.grid(row=0, column=1, padx=10, pady=5)
+    # midterm_entry.insert(0, student_info[0]) 
 
     Label(details_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
-    Label(details_window, text=student_info[1]).grid(row=1, column=1, padx=10, pady=5)
-
+    # Label(details_window, text=student_info[1]).grid(row=1, column=1, padx=10, pady=5)
+    midterm_entry = Entry(details_window)
+    midterm_entry.grid(row=1, column=1, padx=10, pady=5)
+    midterm_entry.insert(0, student_info[1]) 
+    
     Label(details_window, text="Năm Sinh:").grid(row=2, column=0, padx=10, pady=5)
-    Label(details_window, text=student_info[2]).grid(row=2, column=1, padx=10, pady=5)
-
+    # Label(details_window, text=student_info[2]).grid(row=2, column=1, padx=10, pady=5)
+    midterm_entry = Entry(details_window)
+    midterm_entry.grid(row=2, column=1, padx=10, pady=5)
+    midterm_entry.insert(0, student_info[2]) 
     Label(details_window, text="Giới Tính:").grid(row=3, column=0, padx=10, pady=5)
-    Label(details_window, text=student_info[3]).grid(row=3, column=1, padx=10, pady=5)
-
+    # Label(details_window, text=student_info[3]).grid(row=3, column=1, padx=10, pady=5)
+    midterm_entry = Entry(details_window)
+    midterm_entry.grid(row=3, column=1, padx=10, pady=5)
+    midterm_entry.insert(0, student_info[3]) 
     Label(details_window, text="Dân Tộc:").grid(row=4, column=0, padx=10, pady=5)
-    Label(details_window, text=student_info[4]).grid(row=4, column=1, padx=10, pady=5)
-
+    # Label(details_window, text=student_info[4]).grid(row=4, column=1, padx=10, pady=5)
+    midterm_entry = Entry(details_window)
+    midterm_entry.grid(row=4, column=1, padx=10, pady=5)
+    midterm_entry.insert(0, student_info[4]) 
     Label(details_window, text="Địa Chỉ:").grid(row=5, column=0, padx=10, pady=5)
     Label(details_window, text=student_info[5]).grid(row=5, column=1, padx=10, pady=5)
+    midterm_entry = Entry(details_window)
+    midterm_entry.grid(row=5, column=1, padx=10, pady=5)
+    midterm_entry.insert(0, student_info[5]) 
+    delete_button = Button(details_window, text="Xoá", command=lambda: delete_sinhvien(student_info[0]), fg="white", bg="red",width=20)
+    delete_button.grid(row=8, column=0, padx=10, pady=5)  
+    # update_info_window(student)
+    # update_button = Button(details_window, text="Cập nhật", command=lambda:update_sv, fg="white", bg="green", width=20)
+    # update_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
+    def update_student_info():
+        update_sv(midterm_entry, final_entry, student_info)
 
+    update_button = Button(details_window, text="Cập nhật", command=update_student_info, fg="white", bg="green", width=20)
+    update_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
     # Sử dụng Entry để cho phép chỉnh sửa
     Label(details_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
     midterm_entry = Entry(details_window)
@@ -189,8 +276,25 @@ def view_diemhocphan_details(student_info):
     final_entry = Entry(details_window)
     Label(details_window, text=total_credit_hours).grid(row=7, column=1, padx=10, pady=5)
     final_entry.insert(0, student_info[7])  # Hiển thị giá trị hiện tại
-    delete_button = Button(details_window, text="Xoá", command=lambda: delete_sinhvien(student_info[0]))
-    delete_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
+  
+# #cập nhật tt sinh vien
+def update_sv(midterm_entry, final_entry, student_info):
+    new_midterm = midterm_entry.get()
+    new_final = final_entry.get()
+    conn = connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE sinhvien SET ho_ten_sv=%s, ngay_sinh=%s, gioi_tinh=%s, dan_toc=%s, noi_sinh=%s WHERE ma_sv=%s",
+        (new_midterm, new_final, student_info[1], student_info[2], student_info[3], student_info[4], student_info[5]))
+    print("da va0" + new_final)
+    messagebox.showinfo("Success", "Student information updated successfully!")
+        # Cập nhật lại dữ liệu trong Treeview
+        # view_diemhocphan()
+    conn.commit()
+    conn.close()
+        # Đóng cửa sổ chi tiết sau khi cập nhật
+        # details_window.destroy()
+# def update_sinhvien(masv):
+
 
 def view_Diemhp_details(student_info):
     # Tạo một cửa sổ mới
@@ -251,7 +355,7 @@ def view_Diemhp_details(student_info):
     update_button = Button(details_window, text="Cập nhật điểm", command=update_grade, width=20)
     update_button.grid(row=8, column=1, padx=10, pady=10)
 
-#danh sách học phần END
+    #danh sách học phần END
     # Hàm cập nhật điểm
     def update_grade():
         # Lấy giá trị mới từ các ô nhập liệu
@@ -552,10 +656,10 @@ if __name__ == "__main__":
     b1.grid(row=0, column=0)
     b1.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
 
-    # Thêm sinh viên
-    b2 = Button(root, text="Thêm sinh viên", command=add_sinhvien_window, width=40)
-    b2.grid(row=1, column=0)
-    b2.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
+    # # Thêm sinh viên
+    # b2 = Button(root, text="Thêm sinh viên", command=add_sinhvien_window, width=40)
+    # b2.grid(row=1, column=0)
+    # b2.config(bg=button_color, fg='white', font=button_font)  # Cấu hình màu và font
 
     # Danh sách học phần
     b3 = Button(root, text="Danh sách học phần", command=view_diemhocphan, width=40)
