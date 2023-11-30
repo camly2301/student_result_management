@@ -23,17 +23,50 @@ def add_sinhvien(ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lo
     conn = connection()
     cur = conn.cursor()
     try:
-        cur.execute("""
-            INSERT INTO sinhvien (ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop))
-        conn.commit()
-        conn.close()
-        messagebox.showinfo("Thông báo", "Thêm sinh viên thành công")
+        # Kiểm tra xem mã sinh viên đã tồn tại hay chưa
+        cur.execute("SELECT ma_sv FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
+        existing_sv = cur.fetchone()
+
+        if existing_sv:
+            conn.close()
+            messagebox.showerror("Lỗi", "Mã sinh viên đã tồn tại")
+        else:
+            # Thêm sinh viên nếu mã sinh viên chưa tồn tại
+            cur.execute("""
+                INSERT INTO sinhvien (ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Thông báo", "Thêm sinh viên thành công")
     except mysql.connector.Error as e:
         print("Error adding data to database:", e)
         conn.rollback()
         conn.close()
+#xoá sinh viên 
+def delete_sinhvien(ma_sv):
+    conn = connection()
+    cur = conn.cursor()
+    try:
+        # Kiểm tra xem sinh viên tồn tại hay không trước khi xoá
+        cur.execute("SELECT ma_sv FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
+        existing_sv = cur.fetchone()
+
+        if existing_sv:
+            # Nếu sinh viên tồn tại, thực hiện xoá
+            cur.execute("DELETE FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Thông báo", "Xoá sinh viên thành công")
+        else:
+            # Nếu sinh viên không tồn tại, hiển thị thông báo lỗi
+            conn.close()
+            messagebox.showerror("Lỗi", "Không tìm thấy sinh viên có mã này")
+    except mysql.connector.Error as e:
+        print("Error deleting data from database:", e)
+        conn.rollback()
+        conn.close()
+#end
 #Điểm học phần Start################################################################################
 
 def view_diemhocphan():
@@ -156,6 +189,9 @@ def view_diemhocphan_details(student_info):
     final_entry = Entry(details_window)
     Label(details_window, text=total_credit_hours).grid(row=7, column=1, padx=10, pady=5)
     final_entry.insert(0, student_info[7])  # Hiển thị giá trị hiện tại
+    delete_button = Button(details_window, text="Xoá", command=lambda: delete_sinhvien(student_info[0]))
+    delete_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
+
 def view_Diemhp_details(student_info):
     # Tạo một cửa sổ mới
     details_window = Toplevel(root)
@@ -282,7 +318,6 @@ def add_diemhocphan_window():
     diem_thi_hp_entry.grid(row=3, column=1, padx=10, pady=5)
 
     # Thêm nút để thực hiện thêm điểm học phần
-    add_button = Button(add_window, text="Thêm Điểm", command=lambda: add_diemhocphan(ma_sv_entry.get(), ma_mon_combobox.get(), diem_giua_ky_entry.get(), diem_thi_hp_entry.get()), width=20)
     add_button.grid(row=4, column=1, padx=10, pady=10)
 def add_diemhocphan(ma_sv, ma_mon, diem_giua_ky, diem_thi_hp):
     global add_window 
@@ -326,7 +361,7 @@ def view_sinhvien():
     search_sinhvien_button = Button(root, text="Tìm kiếm", command=search_diemhocphan, width=20)
     search_sinhvien_button.grid(row=7, column=0, padx=0, pady=5)
 
-    add_sinhvien_button = Button(root, text="Thêm sinh viên", command=add_diemhocphan_window, width=20)
+    add_sinhvien_button = Button(root, text="Thêm sinh viên", command=add_sinhvien_window, width=20)
     add_sinhvien_button.grid(row=12, column=0, padx=0, pady=5)
 
     conn = connection()
