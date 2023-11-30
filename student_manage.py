@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import sys,mysql.connector
+from openpyxl import Workbook
 
 #Hàm connect db.
 def connection():
@@ -8,8 +9,8 @@ def connection():
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="camly",
-            database="qlydiemsv"
+            password="123456",
+            database="quan_ly_diem"
         )
         return conn
     except mysql.connector.Error as e:
@@ -316,7 +317,34 @@ def update_info_window():
     # Nút "Update" trong cửa sổ cập nhật
     Button(update_window, text="Update", command=clse, width=20).grid(row=5, column=1, padx=10, pady=10)
 
+def xuat_excel():
+    # Create a new Excel workbook
+    workbook = Workbook()
 
+    # Create a worksheet
+    worksheet = workbook.active
+    worksheet.title = "Danh sách điểm học phần"  # Set the worksheet title
+
+    # Define headers for the Excel file
+    headers = [
+        "Mã SV", "Họ và tên SV", "Mã lớp", "Mã học phần",
+        "Tên học phần", "Số tín chỉ", "Điểm giữa kỳ", "Điểm cuối kỳ"
+    ]
+
+    # Write headers to the first row of the worksheet
+    worksheet.append(headers)
+
+    # Fetch data from the Treeview
+    tree_data = tree.get_children()
+    for item in tree_data:
+        values = tree.item(item, 'values')
+        worksheet.append(values)  # Write each row of data to the Excel file
+
+    # Save the Excel file with a given name
+    excel_filename = "DanhSachDiemHocPhan.xlsx"
+    workbook.save(excel_filename)
+    print(f"Excel file '{excel_filename}' exported successfully!")
+    
 def clse():
     sys.exit() 
 
@@ -327,7 +355,8 @@ if __name__=="__main__":
     
     t1=Text(root,width=140,height=25)
     t1.grid(row=0,column=1,rowspan=26, padx=10)
-
+    def change_color(button):
+        button['bg'] = 'blue'
 
     b1=Button(root,text="Danh sách sinh viên",command=view_sinhvien,width=40)
     b1.grid(row=0,column=0)
@@ -340,9 +369,16 @@ if __name__=="__main__":
 
     b4=Button(root,text="Danh sách điểm học phần",command=view_diemhocphan,width=40)
     b4.grid(row=3,column=0)
-
+    b8=Button(root,text="Xuất excel",command=xuat_excel,width=40)
+    b8.grid(row=4,column=0)
     b7=Button(root,text="Đóng ứng dụng",command=clse,width=40)
     b7.grid(row=23,column=0)
+    b7['bg'] = 'red'
+    # b1['bg'] = 'blue'
+    # b2['bg'] = 'blue'
+    # b4['bg'] = 'blue'
+    # b3['bg'] = 'blue'
+    # b8['bg'] = 'blue'
 
     root.resizable(False, False)
     root.mainloop()
