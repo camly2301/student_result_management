@@ -317,34 +317,95 @@ def update_info_window():
     # Nút "Update" trong cửa sổ cập nhật
     Button(update_window, text="Update", command=clse, width=20).grid(row=5, column=1, padx=10, pady=10)
 
-def xuat_excel():
-    # Create a new Excel workbook
+# def xuat_excel():
+#     # Create a new Excel workbook
+#     workbook = Workbook()
+
+#     # Create a worksheet
+#     worksheet = workbook.active
+#     worksheet.title = "Danh sách điểm học phần"  # Set the worksheet title
+
+#     # Define headers for the Excel file
+#     headers = [
+#         "Mã SV", "Họ và tên SV", "Mã lớp", "Mã học phần",
+#         "Tên học phần", "Số tín chỉ", "Điểm giữa kỳ", "Điểm cuối kỳ"
+#     ]
+
+#     # Write headers to the first row of the worksheet
+#     worksheet.append(headers)
+
+#     # Fetch data from the Treeview
+#     tree_data = tree.get_children()
+#     for item in tree_data:
+#         values = tree.item(item, 'values')
+#         worksheet.append(values)  # Write each row of data to the Excel file
+
+#     # Save the Excel file with a given name
+#     excel_filename = "DanhSachDiemHocPhan.xlsx"
+#     workbook.save(excel_filename)
+#     print(f"Excel file '{excel_filename}' exported successfully!")
+# def xuat_sinhvien_excel():
+#     workbook = Workbook()
+#     worksheet = workbook.active
+#     worksheet.title = "Danh sách sinh viên"
+
+#     headers = [
+#         "Mã SV", "Họ và tên SV", "Ngày sinh", "Giới tính",
+#         "Dân tộc", "Nơi sinh", "Mã lớp"
+#     ]
+
+#     worksheet.append(headers)
+
+#     conn = connection()
+#     cur = conn.cursor()
+#     cur.execute("SELECT * FROM sinhvien")
+#     data = cur.fetchall()
+#     conn.close()
+
+#     for row in data:
+#         worksheet.append(row)
+
+#     excel_filename = "DanhSachSinhVien.xlsx"
+#     workbook.save(excel_filename)
+#     print(f"Excel file '{excel_filename}' exported successfully!")    
+
+def xuat_tatca_sinhvien_diem():
     workbook = Workbook()
 
-    # Create a worksheet
-    worksheet = workbook.active
-    worksheet.title = "Danh sách điểm học phần"  # Set the worksheet title
+    # Tạo worksheet cho danh sách sinh viên
+    ws_sinhvien = workbook.create_sheet(title="Danh sách sinh viên")
+    headers_sinhvien = ["Mã SV", "Họ và tên SV", "Ngày sinh", "Giới tính", "Dân tộc", "Nơi sinh", "Mã lớp"]
+    ws_sinhvien.append(headers_sinhvien)
 
-    # Define headers for the Excel file
-    headers = [
-        "Mã SV", "Họ và tên SV", "Mã lớp", "Mã học phần",
-        "Tên học phần", "Số tín chỉ", "Điểm giữa kỳ", "Điểm cuối kỳ"
+    conn = connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM sinhvien")
+    data_sinhvien = cur.fetchall()
+    conn.close()
+
+    for row in data_sinhvien:
+        ws_sinhvien.append(row)
+
+    # Tạo worksheet cho bảng điểm học phần
+    ws_diemhocphan = workbook.create_sheet(title="Bảng điểm học phần")
+    headers_diemhocphan = [
+        "Mã SV", "Họ và tên SV", "Mã lớp", "Mã học phần", "Tên học phần", "Số tín chỉ", "Điểm giữa kỳ", "Điểm cuối kỳ"
     ]
+    ws_diemhocphan.append(headers_diemhocphan)
 
-    # Write headers to the first row of the worksheet
-    worksheet.append(headers)
+    conn = connection()
+    cur = conn.cursor()
+    cur.execute("SELECT diemhocphan.ma_sv,hoten_sv,ma_lop,diemhocphan.ma_mon,ten_mon,sotinchi,diem_giua_ky,diem_thi_hp FROM diemhocphan INNER JOIN sinhvien ON diemhocphan.ma_sv=sinhvien.ma_sv INNER JOIN monhocphan ON monhocphan.ma_mon=diemhocphan.ma_mon")
+    data_diemhocphan = cur.fetchall()
+    conn.close()
 
-    # Fetch data from the Treeview
-    tree_data = tree.get_children()
-    for item in tree_data:
-        values = tree.item(item, 'values')
-        worksheet.append(values)  # Write each row of data to the Excel file
+    for row in data_diemhocphan:
+        ws_diemhocphan.append(row)
 
-    # Save the Excel file with a given name
-    excel_filename = "DanhSachDiemHocPhan.xlsx"
+    # Lưu file Excel với tên file
+    excel_filename = "TatCaSinhVien_DiemHocPhan.xlsx"
     workbook.save(excel_filename)
     print(f"Excel file '{excel_filename}' exported successfully!")
-    
 def clse():
     sys.exit() 
 
@@ -369,7 +430,7 @@ if __name__=="__main__":
 
     b4=Button(root,text="Danh sách điểm học phần",command=view_diemhocphan,width=40)
     b4.grid(row=3,column=0)
-    b8=Button(root,text="Xuất excel",command=xuat_excel,width=40)
+    b8=Button(root,text="Xuất excel",command=xuat_tatca_sinhvien_diem,width=40)
     b8.grid(row=4,column=0)
     b7=Button(root,text="Đóng ứng dụng",command=clse,width=40)
     b7.grid(row=23,column=0)
