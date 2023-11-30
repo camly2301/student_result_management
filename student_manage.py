@@ -2,8 +2,10 @@ from tkinter import *
 from tkinter import ttk
 import sys,mysql.connector
 from openpyxl import Workbook
-
+from tkinter import messagebox
 #Hàm connect db.
+add_window = None
+
 def connection():
     try:
         conn = mysql.connector.connect(
@@ -78,13 +80,68 @@ def view_diemhocphan():
         values = tree.item(selected_item, 'values')
 
         # Hiển thị cửa sổ chi tiết điểm học phần
-        view_diemhocphan_details(values)
-
+        # view_diemhocphan_details(values)
+        view_Diemhp_details(values)
     # Gán hàm on_item_click khi click vào dòng
     tree.bind('<ButtonRelease-1>', on_item_click)
+# tổng số tín chỉ đã học 
+def total_credit_hours_of_student(ma_sv):
+    conn = connection()
+    cur = conn.cursor()
+    try:
+        # Truy vấn cơ sở dữ liệu để lấy tổng số tín chỉ đã học của sinh viên theo mã sinh viên
+        cur.execute("""
+            SELECT SUM(sotinchi) 
+            FROM diemhocphan 
+            INNER JOIN monhocphan ON diemhocphan.ma_mon = monhocphan.ma_mon 
+            WHERE diemhocphan.ma_sv = %s
+        """, (ma_sv,))
+        total_credit_hours = cur.fetchone()[0]  # Lấy tổng số tín chỉ từ kết quả truy vấn
+
+        conn.close()
+
+        return total_credit_hours if total_credit_hours else 0  # Trả về tổng số tín chỉ, nếu không có trả về 0
+    except mysql.connector.Error as e:
+        print("Error retrieving total credit hours:", e)
+        conn.close()
+        return 0  # Trả về 0 nếu có lỗi khi truy vấn cơ sở dữ liệu
 
 
 def view_diemhocphan_details(student_info):
+    # Tạo một cửa sổ mới
+    details_window = Toplevel(root)
+    details_window.title("SV:" + student_info[1]) 
+
+    # Hiển thị thông tin chi tiết của dòng được chọn
+    Label(details_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[0]).grid(row=0, column=1, padx=10, pady=5)
+
+    Label(details_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[1]).grid(row=1, column=1, padx=10, pady=5)
+
+    Label(details_window, text="Năm Sinh:").grid(row=2, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[2]).grid(row=2, column=1, padx=10, pady=5)
+
+    Label(details_window, text="Giới Tính:").grid(row=3, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[3]).grid(row=3, column=1, padx=10, pady=5)
+
+    Label(details_window, text="Dân Tộc:").grid(row=4, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[4]).grid(row=4, column=1, padx=10, pady=5)
+
+    Label(details_window, text="Địa Chỉ:").grid(row=5, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[5]).grid(row=5, column=1, padx=10, pady=5)
+
+    # Sử dụng Entry để cho phép chỉnh sửa
+    Label(details_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
+    midterm_entry = Entry(details_window)
+    midterm_entry.grid(row=6, column=1, padx=10, pady=5)
+    midterm_entry.insert(0, student_info[6])  # Hiển thị giá trị hiện tại
+    total_credit_hours = total_credit_hours_of_student(student_info[0])
+    Label(details_window, text="Tổng số tín chỉ đã học :").grid(row=7, column=0, padx=10, pady=5)
+    final_entry = Entry(details_window)
+    Label(details_window, text=total_credit_hours).grid(row=7, column=1, padx=10, pady=5)
+    final_entry.insert(0, student_info[7])  # Hiển thị giá trị hiện tại
+def view_Diemhp_details(student_info):
     # Tạo một cửa sổ mới
     details_window = Toplevel(root)
     details_window.title("SV:" + student_info[1]) 
@@ -143,6 +200,31 @@ def view_diemhocphan_details(student_info):
     update_button = Button(details_window, text="Cập nhật điểm", command=update_grade, width=20)
     update_button.grid(row=8, column=1, padx=10, pady=10)
 
+#danh sách học phần END
+    # Hàm cập nhật điểm
+    def update_grade():
+        # Lấy giá trị mới từ các ô nhập liệu
+        new_midterm = midterm_entry.get()
+        new_final = final_entry.get()
+
+        # Thực hiện cập nhật vào cơ sở dữ liệu
+        conn = connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE diemhocphan SET diem_giua_ky=%s, diem_thi_hp=%s WHERE ma_sv=%s AND ma_mon=%s", (new_midterm, new_final, student_info[0], student_info[3]))
+        conn.commit()
+        conn.close()
+
+        # Cập nhật lại dữ liệu trong Treeview
+        view_diemhocphan()
+
+        # Đóng cửa sổ chi tiết sau khi cập nhật
+        details_window.destroy()
+
+
+    # Nút cập nhật điểm
+    update_button = Button(details_window, text="Cập nhật điểm", command=update_grade, width=20)
+    update_button.grid(row=8, column=1, padx=10, pady=10)
+
 
 def search_diemhocphan():
 
@@ -164,6 +246,7 @@ def search_diemhocphan():
         tree.insert("", "end", values=row)
 
 def add_diemhocphan_window():
+    global add_window
     add_window = Toplevel(root)
     add_window.title("Thêm Điểm Học Phần")
 
@@ -188,20 +271,33 @@ def add_diemhocphan_window():
     # Thêm nút để thực hiện thêm điểm học phần
     add_button = Button(add_window, text="Thêm Điểm", command=lambda: add_diemhocphan(ma_sv_entry.get(), ma_mon_combobox.get(), diem_giua_ky_entry.get(), diem_thi_hp_entry.get()), width=20)
     add_button.grid(row=4, column=1, padx=10, pady=10)
-
 def add_diemhocphan(ma_sv, ma_mon, diem_giua_ky, diem_thi_hp):
-    # Thực hiện thêm điểm học phần vào cơ sở dữ liệu
+    global add_window 
     conn = connection()
     cur = conn.cursor()
-    cur.execute("INSERT INTO diemhocphan (ma_sv, ma_mon, diem_giua_ky, diem_thi_hp) VALUES (%s, %s, %s, %s)", (ma_sv, ma_mon, diem_giua_ky, diem_thi_hp))
-    conn.commit()
-    conn.close()
+    try:
+        # Try to insert the data, if there's a duplicate key, update the values
+        cur.execute("""
+            INSERT INTO diemhocphan (ma_sv, ma_mon, diem_giua_ky, diem_thi_hp) 
+            VALUES (%s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+            diem_giua_ky = VALUES(diem_giua_ky), diem_thi_hp = VALUES(diem_thi_hp)
+        """, (ma_sv, ma_mon, diem_giua_ky, diem_thi_hp))
+        conn.commit()
+        view_diemhocphan()  # Refresh the view after adding/updating data
+        add_window.destroy()  # Close the add_window if the operation is successful
+        if add_window:
+            add_window.destroy()
+            messagebox.showinfo("Success", "Cập nhật thành công!")
+        conn.close()
+        # Check if the record was updated or inserted successfully
+        
+        conn.close()
+    except mysql.connector.Error as e:
+        print("Thêm thất bại", e)
+        conn.rollback()
+        conn.close()
 
-    # Hiển thị thông báo hoặc cập nhật lại Treeview nếu cần thiết
-    # ...
-
-    # Đóng cửa sổ thêm điểm học phần
-    add_window.destroy()
 
 #Điểm học phần END ################################################################################
 
@@ -315,63 +411,11 @@ def update_info_window():
     Entry(update_window, textvariable=update_address).grid(row=4, column=1, padx=10, pady=5)
 
     # Nút "Update" trong cửa sổ cập nhật
-    Button(update_window, text="Update", command=clse, width=20).grid(row=5, column=1, padx=10, pady=10)
-
-# def xuat_excel():
-#     # Create a new Excel workbook
-#     workbook = Workbook()
-
-#     # Create a worksheet
-#     worksheet = workbook.active
-#     worksheet.title = "Danh sách điểm học phần"  # Set the worksheet title
-
-#     # Define headers for the Excel file
-#     headers = [
-#         "Mã SV", "Họ và tên SV", "Mã lớp", "Mã học phần",
-#         "Tên học phần", "Số tín chỉ", "Điểm giữa kỳ", "Điểm cuối kỳ"
-#     ]
-
-#     # Write headers to the first row of the worksheet
-#     worksheet.append(headers)
-
-#     # Fetch data from the Treeview
-#     tree_data = tree.get_children()
-#     for item in tree_data:
-#         values = tree.item(item, 'values')
-#         worksheet.append(values)  # Write each row of data to the Excel file
-
-#     # Save the Excel file with a given name
-#     excel_filename = "DanhSachDiemHocPhan.xlsx"
-#     workbook.save(excel_filename)
-#     print(f"Excel file '{excel_filename}' exported successfully!")
-# def xuat_sinhvien_excel():
-#     workbook = Workbook()
-#     worksheet = workbook.active
-#     worksheet.title = "Danh sách sinh viên"
-
-#     headers = [
-#         "Mã SV", "Họ và tên SV", "Ngày sinh", "Giới tính",
-#         "Dân tộc", "Nơi sinh", "Mã lớp"
-#     ]
-
-#     worksheet.append(headers)
-
-#     conn = connection()
-#     cur = conn.cursor()
-#     cur.execute("SELECT * FROM sinhvien")
-#     data = cur.fetchall()
-#     conn.close()
-
-#     for row in data:
-#         worksheet.append(row)
-
-#     excel_filename = "DanhSachSinhVien.xlsx"
-#     workbook.save(excel_filename)
-#     print(f"Excel file '{excel_filename}' exported successfully!")    
+    Button(update_window, text="Update", command=clse, width=20).grid(row=5, column=1, padx=10, pady=10) 
 
 def xuat_tatca_sinhvien_diem():
     workbook = Workbook()
-
+    global add_window 
     # Tạo worksheet cho danh sách sinh viên
     ws_sinhvien = workbook.create_sheet(title="Danh sách sinh viên")
     headers_sinhvien = ["Mã SV", "Họ và tên SV", "Ngày sinh", "Giới tính", "Dân tộc", "Nơi sinh", "Mã lớp"]
