@@ -3,6 +3,10 @@ from tkinter import ttk
 import sys,mysql.connector
 from openpyxl import Workbook
 from tkinter import messagebox
+import smtplib
+from email.mime.text import MIMEText
+import secrets
+import string
 #Hàm connect db.
 add_window = None
 
@@ -19,7 +23,7 @@ def connection():
         print("Error connecting to the database:", e)
         return None
 
-#Sinh viên Start#########################################################
+# Sinh viên Start #########################################################
 def view_sinhvien():
     # Sử dụng biến global.
     global tree
@@ -100,6 +104,47 @@ def search_sinhvien():
     # Display the filtered data in the Treeview
     for row in data:
         tree.insert("", "end", values=row)
+
+# Hiển thị form thêm mới sinh viên
+def add_sinhvien_window():
+    add_window = Toplevel(root)
+    add_window.title("Thêm Sinh Viên")
+
+    Label(add_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
+    ma_sv_entry = Entry(add_window, width=40)
+    ma_sv_entry.grid(row=0, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
+    hoten_sv_entry = Entry(add_window, width=40)
+    hoten_sv_entry.grid(row=1, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Ngày sinh (YYYY-MM-DD):").grid(row=2, column=0, padx=10, pady=5)
+    ngay_sinh_entry = Entry(add_window, width=40)
+    ngay_sinh_entry.grid(row=2, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Giới tính (Nam/Nữ):").grid(row=3, column=0, padx=10, pady=5)
+    gioi_tinh_entry = Entry(add_window, width=40)
+    gioi_tinh_entry.grid(row=3, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Dân tộc:").grid(row=4, column=0, padx=10, pady=5)
+    dan_toc_entry = Entry(add_window, width=40)
+    dan_toc_entry.grid(row=4, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Nơi sinh:").grid(row=5, column=0, padx=10, pady=5)
+    noi_sinh_entry = Entry(add_window, width=40)
+    noi_sinh_entry.grid(row=5, column=1, padx=10, pady=5)
+
+    # Combobox get mã lớp
+    Label(add_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
+    ma_lop_values = get_ma_lop_values()
+    ma_lop_combobox = ttk.Combobox(add_window, values=ma_lop_values, width=37)
+    ma_lop_combobox.grid(row=6, column=1, padx=10, pady=5)
+
+    add_button = Button(add_window, text="Thêm Sinh Viên", command=lambda: add_sinhvien(
+        ma_sv_entry.get(), hoten_sv_entry.get(), ngay_sinh_entry.get(),
+        gioi_tinh_entry.get(), dan_toc_entry.get(), noi_sinh_entry.get(), ma_lop_combobox.get()
+    ), width=20)
+    add_button.grid(row=7, column=1, padx=10, pady=10)
    
 #thêm sinh viên
 def add_sinhvien(ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lop):
@@ -128,7 +173,109 @@ def add_sinhvien(ma_sv, hoten_sv, ngay_sinh, gioi_tinh, dan_toc, noi_sinh, ma_lo
         conn.rollback()
         conn.close()
 
+def view_sv_details(student_info):
+    # Tạo một cửa sổ mới
+    details_window = Toplevel(root)
+    details_window.title("SV:" + student_info[1]) 
 
+    # Hiển thị thông tin chi tiết của dòng được chọn
+    Label(details_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
+    Label(details_window, text=student_info[0]).grid(row=0, column=1, padx=10, pady=5)
+
+    Label(details_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
+    # Label(details_window, text=student_info[1]).grid(row=1, column=1, padx=10, pady=5)
+    name_entry = Entry(details_window)
+    name_entry.grid(row=1, column=1, padx=10, pady=5)
+    name_entry.insert(0, student_info[1]) 
+    
+    Label(details_window, text="Năm Sinh:").grid(row=2, column=0, padx=10, pady=5)
+    # Label(details_window, text=student_info[2]).grid(row=2, column=1, padx=10, pady=5)
+    birthday_entry = Entry(details_window)
+    birthday_entry.grid(row=2, column=1, padx=10, pady=5)
+    birthday_entry.insert(0, student_info[2]) 
+    Label(details_window, text="Giới Tính:").grid(row=3, column=0, padx=10, pady=5)
+    # Label(details_window, text=student_info[3]).grid(row=3, column=1, padx=10, pady=5)
+    gt_entry = Entry(details_window)
+    gt_entry.grid(row=3, column=1, padx=10, pady=5)
+    gt_entry.insert(0, student_info[3]) 
+    Label(details_window, text="Dân Tộc:").grid(row=4, column=0, padx=10, pady=5)
+    # Label(details_window, text=student_info[4]).grid(row=4, column=1, padx=10, pady=5)
+    dt_entry = Entry(details_window)
+    dt_entry.grid(row=4, column=1, padx=10, pady=5)
+    dt_entry.insert(0, student_info[4]) 
+    Label(details_window, text="Địa Chỉ:").grid(row=5, column=0, padx=10, pady=5)
+    addr_entry = Entry(details_window)
+    addr_entry.grid(row=5, column=1, padx=10, pady=5)
+    addr_entry.insert(0, student_info[5]) 
+    delete_button = Button(details_window, text="Xoá", command=lambda: delete_sinhvien(student_info[0]), fg="white", bg="red",width=20)
+    delete_button.grid(row=8, column=0, padx=10, pady=5)
+
+    # #cập nhật tt sinh vien
+    def update_sv():
+        name = name_entry.get()
+        birthday = birthday_entry.get()
+        gt = gt_entry.get()
+        dt = dt_entry.get()
+        addr = addr_entry.get()
+        lop = class_entry.get()
+        total = total_entry.get()
+    
+        conn = connection()
+        cur = conn.cursor()
+        cur.execute("UPDATE sinhvien SET hoten_sv=%s, ngay_sinh=%s, gioi_tinh=%s, dan_toc=%s, noi_sinh=%s, ma_lop=%s WHERE ma_sv=%s",
+            (name, birthday, gt, dt, addr, lop, student_info[0]))
+     #print("da va0" + new_final)
+        messagebox.showinfo("Success", "Thông tin sinh viên đã được cập nhật!")
+            # Cập nhật lại dữ liệu trong Treeview
+         # view_diemhocphan()
+        
+        conn.commit()
+        conn.close()
+            # Đóng cửa sổ chi tiết sau khi cập nhật
+        details_window.destroy()
+        view_sinhvien()
+    #xoá sinh viên 
+    def delete_sinhvien(ma_sv):
+        conn = connection()
+        cur = conn.cursor()
+        try:
+            # Kiểm tra xem sinh viên tồn tại hay không trước khi xoá
+            cur.execute("SELECT ma_sv FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
+            existing_sv = cur.fetchone()
+
+            if existing_sv:
+                # Nếu sinh viên tồn tại, thực hiện xoá
+                cur.execute("DELETE FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
+                conn.commit()
+                conn.close()
+                messagebox.showinfo("Thông báo", "Xoá sinh viên thành công")
+                details_window.destroy()
+                search_sinhvien()
+            else:
+                # Nếu sinh viên không tồn tại, hiển thị thông báo lỗi
+                conn.close()
+                messagebox.showerror("Lỗi", "Không tìm thấy sinh viên có mã này")
+        except mysql.connector.Error as e:
+            print("Error deleting data from database:", e)
+            conn.rollback()
+            conn.close()
+    update_button = Button(details_window, text="Cập nhật", command=update_sv, fg="black", bg="yellow", width=20)
+    update_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
+    # Combobox get mã lớp
+    Label(details_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
+    ma_lop_values = get_ma_lop_values()
+    class_entry = ttk.Combobox(details_window, values=ma_lop_values, width=17)
+    class_entry.set(student_info[6])
+    class_entry.grid(row=6, column=1, padx=10, pady=5)
+    total_credit_hours = total_credit_hours_of_student(student_info[0])
+    Label(details_window, text="Tổng số tín chỉ đã học :").grid(row=7, column=0, padx=10, pady=5)
+    total_entry = Entry(details_window)
+    Label(details_window, text=total_credit_hours).grid(row=7, column=1, padx=10, pady=5)
+    total_entry.insert(0, student_info[7])  # Hiển thị giá trị hiện tại
+    
+# Sinh viên End #########################################################
+
+# Điểm học phần Start #########################################################
 def view_diemhocphan():
     # Sử dụng biến global.
     global tree
@@ -193,190 +340,6 @@ def view_diemhocphan():
     # Gán hàm on_item_click khi click vào dòng
     tree.bind('<ButtonRelease-1>', on_item_click)
 
-def view_hocphan():
-    # Sử dụng biến global.
-    global tree
-    global search_hocphan_entry
-    # Xóa nội dung cũ trong Text widget
-
-    # Tạo input search và button search và clear search
-    search_hocphan_entry = Entry(root, width=40)
-    search_hocphan_entry.grid(row=6, column=0, padx=0, pady=5)
-
-    search_hocphan_button = Button(root, text="Tìm kiếm", command=search_diemhocphan, width=20)
-    search_hocphan_button.grid(row=7, column=0, padx=0, pady=5)
-
-    add_hocphan_button = Button(root, text="Thêm học phần", command=add_diemhocphan_window, width=20)
-    add_hocphan_button.grid(row=12, column=0, padx=0, pady=5)
-
-    conn = connection()
-    cur = conn.cursor()
-    cur.execute("select * from monhocphan")
-    data = cur.fetchall()
-    conn.close()
-
-    # Tạo một Treeview widget
-    tree = ttk.Treeview(root, columns=(1, 2, 3, 4), show="headings", height=20)
-
-    # Đặt tên các cột
-    tree.heading(1, text="Mã học phần")
-    tree.heading(2, text="Tên học phần")
-    tree.heading(3, text="Số tín chỉ")
-    tree.heading(4, text="Mã học kỳ")
-    
-    # Đặt lại chiều rộng của mã SV, Mã lớp, số tín chỉ.
-    tree.column(1, width=310)
-    tree.column(2, width=500)
-    tree.column(3, width=200)
-    tree.column(4, width=200)
-
-    # Hiển thị dữ liệu trong Treeview
-    for row in data:
-        tree.insert("", "end", values=row)
-
-    # Thêm Treeview vào cửa sổ chính
-    tree.grid(row=0, column=1, pady=0, padx=10,rowspan=26)
-
-    # Tạo và thiết lập Scrollbar
-    scrollbar = ttk.Scrollbar(root, orient="vertical", command=tree.yview)
-    scrollbar.grid(row=0, column=2, sticky="ns",rowspan=26)
-    tree.configure(yscrollcommand=scrollbar.set)
-
-    def on_item_click(event):
-        # Lấy thông tin của dòng được chọn
-        selected_item = tree.selection()[0]
-        values = tree.item(selected_item, 'values')
-
-        # Hiển thị cửa sổ chi tiết điểm học phần
-        # view_diemhocphan_details(values)
-        view_Diemhp_details(values)
-    # Gán hàm on_item_click khi click vào dòng
-    tree.bind('<ButtonRelease-1>', on_item_click)
-
-# tổng số tín chỉ đã học 
-def total_credit_hours_of_student(ma_sv):
-    conn = connection()
-    cur = conn.cursor()
-    try:
-        # Truy vấn cơ sở dữ liệu để lấy tổng số tín chỉ đã học của sinh viên theo mã sinh viên
-        cur.execute("""
-            SELECT SUM(sotinchi) 
-            FROM diemhocphan 
-            INNER JOIN monhocphan ON diemhocphan.ma_mon = monhocphan.ma_mon 
-            WHERE diemhocphan.ma_sv = %s
-        """, (ma_sv,))
-        total_credit_hours = cur.fetchone()[0]  # Lấy tổng số tín chỉ từ kết quả truy vấn
-
-        conn.close()
-
-        return total_credit_hours if total_credit_hours else 0  # Trả về tổng số tín chỉ, nếu không có trả về 0
-    except mysql.connector.Error as e:
-        print("Error retrieving total credit hours:", e)
-        conn.close()
-        return 0  # Trả về 0 nếu có lỗi khi truy vấn cơ sở dữ liệu
-
-
-def view_sv_details(student_info):
-    # Tạo một cửa sổ mới
-    details_window = Toplevel(root)
-    details_window.title("SV:" + student_info[1]) 
-
-    # Hiển thị thông tin chi tiết của dòng được chọn
-    Label(details_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
-    Label(details_window, text=student_info[0]).grid(row=0, column=1, padx=10, pady=5)
-
-    Label(details_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
-    # Label(details_window, text=student_info[1]).grid(row=1, column=1, padx=10, pady=5)
-    name_entry = Entry(details_window)
-    name_entry.grid(row=1, column=1, padx=10, pady=5)
-    name_entry.insert(0, student_info[1]) 
-    
-    Label(details_window, text="Năm Sinh:").grid(row=2, column=0, padx=10, pady=5)
-    # Label(details_window, text=student_info[2]).grid(row=2, column=1, padx=10, pady=5)
-    birthday_entry = Entry(details_window)
-    birthday_entry.grid(row=2, column=1, padx=10, pady=5)
-    birthday_entry.insert(0, student_info[2]) 
-    Label(details_window, text="Giới Tính:").grid(row=3, column=0, padx=10, pady=5)
-    # Label(details_window, text=student_info[3]).grid(row=3, column=1, padx=10, pady=5)
-    gt_entry = Entry(details_window)
-    gt_entry.grid(row=3, column=1, padx=10, pady=5)
-    gt_entry.insert(0, student_info[3]) 
-    Label(details_window, text="Dân Tộc:").grid(row=4, column=0, padx=10, pady=5)
-    # Label(details_window, text=student_info[4]).grid(row=4, column=1, padx=10, pady=5)
-    dt_entry = Entry(details_window)
-    dt_entry.grid(row=4, column=1, padx=10, pady=5)
-    dt_entry.insert(0, student_info[4]) 
-    Label(details_window, text="Địa Chỉ:").grid(row=5, column=0, padx=10, pady=5)
-    addr_entry = Entry(details_window)
-    addr_entry.grid(row=5, column=1, padx=10, pady=5)
-    addr_entry.insert(0, student_info[5]) 
-    delete_button = Button(details_window, text="Xoá", command=lambda: delete_sinhvien(student_info[0]), fg="white", bg="red",width=20)
-    delete_button.grid(row=8, column=0, padx=10, pady=5)
-
-    # #cập nhật tt sinh vien
-    def update_sv():
-        name = name_entry.get()
-        birthday = birthday_entry.get()
-        gt = gt_entry.get()
-        dt = dt_entry.get()
-        addr = addr_entry.get()
-        lop = class_entry.get()
-        total = total_entry.get()
-    
-        conn = connection()
-        cur = conn.cursor()
-        cur.execute("UPDATE sinhvien SET hoten_sv=%s, ngay_sinh=%s, gioi_tinh=%s, dan_toc=%s, noi_sinh=%s, ma_lop=%s WHERE ma_sv=%s",
-            (name, birthday, gt, dt, addr, lop, student_info[0]))
-     #print("da va0" + new_final)
-        messagebox.showinfo("Success", "Student information updated successfully!")
-            # Cập nhật lại dữ liệu trong Treeview
-         # view_diemhocphan()
-        
-        conn.commit()
-        conn.close()
-            # Đóng cửa sổ chi tiết sau khi cập nhật
-        details_window.destroy()
-        view_sinhvien()
-    #xoá sinh viên 
-    def delete_sinhvien(ma_sv):
-        conn = connection()
-        cur = conn.cursor()
-        try:
-            # Kiểm tra xem sinh viên tồn tại hay không trước khi xoá
-            cur.execute("SELECT ma_sv FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
-            existing_sv = cur.fetchone()
-
-            if existing_sv:
-                # Nếu sinh viên tồn tại, thực hiện xoá
-                cur.execute("DELETE FROM sinhvien WHERE ma_sv = %s", (ma_sv,))
-                conn.commit()
-                conn.close()
-                messagebox.showinfo("Thông báo", "Xoá sinh viên thành công")
-                details_window.destroy()
-                search_sinhvien()
-            else:
-                # Nếu sinh viên không tồn tại, hiển thị thông báo lỗi
-                conn.close()
-                messagebox.showerror("Lỗi", "Không tìm thấy sinh viên có mã này")
-        except mysql.connector.Error as e:
-            print("Error deleting data from database:", e)
-            conn.rollback()
-            conn.close()
-    update_button = Button(details_window, text="Cập nhật", command=update_sv, fg="black", bg="yellow", width=20)
-    update_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
-    # Combobox get mã lớp
-    Label(details_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
-    ma_lop_values = get_ma_lop_values()
-    class_entry = ttk.Combobox(details_window, values=ma_lop_values, width=17)
-    class_entry.set(student_info[6])
-    class_entry.grid(row=6, column=1, padx=10, pady=5)
-    total_credit_hours = total_credit_hours_of_student(student_info[0])
-    Label(details_window, text="Tổng số tín chỉ đã học :").grid(row=7, column=0, padx=10, pady=5)
-    total_entry = Entry(details_window)
-    Label(details_window, text=total_credit_hours).grid(row=7, column=1, padx=10, pady=5)
-    total_entry.insert(0, student_info[7])  # Hiển thị giá trị hiện tại
-    
-
 def view_Diemhp_details(student_info):
     # Tạo một cửa sổ mới
     details_window = Toplevel(root)
@@ -436,29 +399,6 @@ def view_Diemhp_details(student_info):
     update_button = Button(details_window, text="Cập nhật điểm", command=update_grade, fg="black", bg="yellow", width=20)
     update_button.grid(row=8, column=1, padx=10, pady=10)
 
-    #danh sách học phần END
-    # Hàm cập nhật điểm
-    def update_grade():
-        # Lấy giá trị mới từ các ô nhập liệu
-        new_midterm = midterm_entry.get()
-        new_final = final_entry.get()
-
-        # Thực hiện cập nhật vào cơ sở dữ liệu
-        conn = connection()
-        cur = conn.cursor()
-        cur.execute("UPDATE diemhocphan SET diem_giua_ky=%s, diem_thi_hp=%s WHERE ma_sv=%s AND ma_mon=%s", (new_midterm, new_final, student_info[0], student_info[3]))
-        conn.commit()
-        conn.close()
-
-        # Cập nhật lại dữ liệu trong Treeview
-        view_diemhocphan()
-
-        # Đóng cửa sổ chi tiết sau khi cập nhật
-        details_window.destroy()
-    # Nút cập nhật điểm
-    update_button = Button(details_window, text="Cập nhật điểm", command=update_grade,fg="black", bg="yellow", width=20)
-    update_button.grid(row=8, column=1, padx=10, pady=10)
-
 
 def search_diemhocphan():
 
@@ -516,6 +456,7 @@ def add_diemhocphan_window():
     add_button = Button(add_window, text="Thêm Điểm", command=lambda: add_diemhocphan(ma_sv_combobox.get(), ma_mon_combobox.get(), diem_giua_ky_entry.get(), diem_thi_hp_entry.get()), width=20)
     add_button.grid(row=5, column=1, padx=10, pady=10)
 
+
 def add_diemhocphan(ma_sv, ma_mon, diem_giua_ky, diem_thi_hp):
     global add_window
     # xử lý chỉ lấy mã sv loại bỏ phần tên sv. vd: DTC12 {Hoàng C} tách DTC12 từ chuỗi này.
@@ -541,10 +482,247 @@ def add_diemhocphan(ma_sv, ma_mon, diem_giua_ky, diem_thi_hp):
         print("Thêm thất bại", e)
         conn.rollback()
         conn.close()
-#Điểm học phần END ################################################################################
+
+# Điểm học phần End ####################################
+
+# Học phần Start #########################################################
+def view_hocphan():
+    # Sử dụng biến global.
+    global tree
+    global search_hocphan_entry
+    # Xóa nội dung cũ trong Text widget
+
+    # Tạo input search và button search và clear search
+    search_hocphan_entry = Entry(root, width=40)
+    search_hocphan_entry.grid(row=6, column=0, padx=0, pady=5)
+
+    search_hocphan_button = Button(root, text="Tìm kiếm", command=search_hocphan, width=20)
+    search_hocphan_button.grid(row=7, column=0, padx=0, pady=5)
+
+    add_hocphan_button = Button(root, text="Thêm học phần", command=add_hocphan_window, width=20)
+    add_hocphan_button.grid(row=12, column=0, padx=0, pady=5)
+
+    conn = connection()
+    cur = conn.cursor()
+    cur.execute("select * from monhocphan")
+    data = cur.fetchall()
+    conn.close()
+
+    # Tạo một Treeview widget
+    tree = ttk.Treeview(root, columns=(1, 2, 3, 4), show="headings", height=20)
+
+    # Đặt tên các cột
+    tree.heading(1, text="Mã học phần")
+    tree.heading(2, text="Tên học phần")
+    tree.heading(3, text="Số tín chỉ")
+    tree.heading(4, text="Mã học kỳ")
+    
+    # Đặt lại chiều rộng của mã SV, Mã lớp, số tín chỉ.
+    tree.column(1, width=310)
+    tree.column(2, width=500)
+    tree.column(3, width=200)
+    tree.column(4, width=200)
+
+    # Hiển thị dữ liệu trong Treeview
+    for row in data:
+        tree.insert("", "end", values=row)
+
+    # Thêm Treeview vào cửa sổ chính
+    tree.grid(row=0, column=1, pady=0, padx=10,rowspan=26)
+
+    # Tạo và thiết lập Scrollbar
+    scrollbar = ttk.Scrollbar(root, orient="vertical", command=tree.yview)
+    scrollbar.grid(row=0, column=2, sticky="ns",rowspan=26)
+    tree.configure(yscrollcommand=scrollbar.set)
+
+    def on_item_click(event):
+        # Lấy thông tin của dòng được chọn
+        selected_item = tree.selection()[0]
+        values = tree.item(selected_item, 'values')
+
+        # Hiển thị cửa sổ chi tiết điểm học phần
+        # view_diemhocphan_details(values)
+        view_hocphan_details(values)
+    # Gán hàm on_item_click khi click vào dòng
+    tree.bind('<ButtonRelease-1>', on_item_click)
+
+def view_hocphan_details(hocphan_info):
+    # Tạo một cửa sổ mới
+    details_window = Toplevel(root)
+    details_window.title("SV:" + hocphan_info[1]) 
+
+    # Hiển thị thông tin chi tiết của dòng được chọn
+    Label(details_window, text="Mã học phần:").grid(row=0, column=0, padx=10, pady=5)
+    mahocphan_entry = Entry(details_window)
+    mahocphan_entry.grid(row=0, column=1, padx=10, pady=5)
+    mahocphan_entry.insert(0, hocphan_info[0]) 
+
+    Label(details_window, text="Tên học phần:").grid(row=1, column=0, padx=10, pady=5)
+    tenhocphan_entry = Entry(details_window)
+    tenhocphan_entry.grid(row=1, column=1, padx=10, pady=5)
+    tenhocphan_entry.insert(0, hocphan_info[1]) 
+    
+    Label(details_window, text="Số tín chỉ:").grid(row=2, column=0, padx=10, pady=5)
+    sotinchi_entry = Entry(details_window)
+    sotinchi_entry.grid(row=2, column=1, padx=10, pady=5)
+    sotinchi_entry.insert(0, hocphan_info[2]) 
+
+    Label(details_window, text="Mã học kỳ:").grid(row=3, column=0, padx=10, pady=5)
+    mahocky_entry = Entry(details_window)
+    mahocky_entry.grid(row=3, column=1, padx=10, pady=5)
+    mahocky_entry.insert(0, hocphan_info[3]) 
+   
+    delete_button = Button(details_window, text="Xoá", command=lambda: delete_hocphan(hocphan_info[0]), fg="white", bg="red",width=20)
+    delete_button.grid(row=8, column=0, padx=10, pady=5)
+
+    # #cập nhật tt sinh vien
+    def update_hp():
+        tenhocphan = tenhocphan_entry.get()
+        mahocphan = mahocphan_entry.get()
+        sotinchi = sotinchi_entry.get()
+        mahocky = mahocky_entry.get()
+    
+        conn = connection()
+        cur = conn.cursor()
+        # Cập nhật lại thông tin bảng học phần
+        cur.execute("UPDATE monhocphan SET ma_mon=%s, ten_mon=%s, sotinchi=%s, ma_hk=%s WHERE ma_mon=%s",
+            (mahocphan, tenhocphan, sotinchi, mahocky, hocphan_info[0]))
+        # Cập nhật lại thông tin mã môn của bảng điểm nếu đã tồn tại học phần trước đó.
+        cur.execute("UPDATE diemhocphan SET ma_mon=%s WHERE ma_mon=%s", (mahocphan, hocphan_info[0]))
+        messagebox.showinfo("Success", "Học phần đã được cập nhật!")
+        
+        conn.commit()
+        conn.close()
+        # Đóng cửa sổ chi tiết sau khi cập nhật
+        details_window.destroy()
+        view_hocphan()
+    #xoá học phần 
+    def delete_hocphan(ma_hp):
+        conn = connection()
+        cur = conn.cursor()
+        try:
+            # Kiểm tra xem học phần tồn tại hay không trước khi xoá
+            cur.execute("SELECT ma_mon FROM monhocphan WHERE ma_mon = %s", (ma_hp,))
+            existing_sv = cur.fetchone()
+
+            if existing_sv:
+                # Nếu học phần tồn tại, thực hiện xoá
+                cur.execute("DELETE FROM monhocphan WHERE ma_mon = %s", (ma_hp,))
+                conn.commit()
+                conn.close()
+                messagebox.showinfo("Thông báo", "Xoá học phần thành công")
+                details_window.destroy()
+                view_hocphan()
+            else:
+                # Nếu học phần không tồn tại, hiển thị thông báo lỗi
+                conn.close()
+                messagebox.showerror("Lỗi", "Không tìm thấy học phần có mã này")
+        except mysql.connector.Error as e:
+            print("Error deleting data from database:", e)
+            conn.rollback()
+            conn.close()
+    update_button = Button(details_window, text="Cập nhật", command=update_hp, fg="black", bg="yellow", width=20)
+    update_button.grid(row=8, columnspan=2, column=1, padx=10, pady=5)
+
+def search_hocphan():
+
+    global tree 
+
+    search_query = search_hocphan_entry.get().lower()
+    conn = connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM monhocphan WHERE LOWER(ten_mon) LIKE %s OR ma_mon LIKE %s OR ma_hk LIKE %s", ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
+    data = cur.fetchall()
+    conn.close()
+
+    # Clear the Treeview
+    for item in tree.get_children():
+        tree.delete(item)
+
+    # Display the filtered data in the Treeview
+    for row in data:
+        tree.insert("", "end", values=row)
+# Hiển thị form thêm mới học phần
+
+def add_hocphan_window():
+    add_window = Toplevel(root)
+    add_window.title("Thêm Học phần")
+
+    # Hiển thị thông tin chi tiết của dòng được chọn
+    Label(add_window, text="Mã học phần:").grid(row=0, column=0, padx=10, pady=5)
+    mahocphan_entry = Entry(add_window)
+    mahocphan_entry.grid(row=0, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Tên học phần:").grid(row=1, column=0, padx=10, pady=5)
+    tenhocphan_entry = Entry(add_window)
+    tenhocphan_entry.grid(row=1, column=1, padx=10, pady=5)
+    
+    Label(add_window, text="Số tín chỉ:").grid(row=2, column=0, padx=10, pady=5)
+    sotinchi_entry = Entry(add_window)
+    sotinchi_entry.grid(row=2, column=1, padx=10, pady=5)
+
+    Label(add_window, text="Mã học kỳ:").grid(row=3, column=0, padx=10, pady=5)
+    mahocky_entry = Entry(add_window)
+    mahocky_entry.grid(row=3, column=1, padx=10, pady=5)
+
+    add_button = Button(add_window, text="Thêm Học phần", command=lambda: add_hocphan(
+        mahocphan_entry.get(), tenhocphan_entry.get(), sotinchi_entry.get(),
+        mahocky_entry.get()
+    ), width=20)
+    add_button.grid(row=6, column=1, padx=10, pady=10)
+
+def add_hocphan(ma_mon, ten_mon, sotinchi, ma_hk):
+    conn = connection()
+    cur = conn.cursor()
+    try:
+        # Kiểm tra xem mã học phần đã tồn tại hay chưa
+        cur.execute("SELECT ma_mon FROM monhocphan WHERE ma_mon = %s", (ma_mon,))
+        existing_sv = cur.fetchone()
+
+        if existing_sv:
+            conn.close()
+            messagebox.showerror("Lỗi", "Mã học phần đã tồn tại")
+        else:
+            # Thêm học phần nếu mã học phần chưa tồn tại
+            cur.execute("""
+                INSERT INTO monhocphan (ma_mon, ten_mon, sotinchi, ma_hk) 
+                VALUES (%s, %s, %s, %s)
+            """, (ma_mon, ten_mon, sotinchi, ma_hk))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Thông báo", "Thêm học phần thành công")
+            search_hocphan()
+    except mysql.connector.Error as e:
+        print("Error adding data to database:", e)
+        conn.rollback()
+        conn.close()
+# Học phần END #########################################################
 
 
 #Common Start########################################################
+# tổng số tín chỉ đã học 
+def total_credit_hours_of_student(ma_sv):
+    conn = connection()
+    cur = conn.cursor()
+    try:
+        # Truy vấn cơ sở dữ liệu để lấy tổng số tín chỉ đã học của sinh viên theo mã sinh viên
+        cur.execute("""
+            SELECT SUM(sotinchi) 
+            FROM diemhocphan 
+            INNER JOIN monhocphan ON diemhocphan.ma_mon = monhocphan.ma_mon 
+            WHERE diemhocphan.ma_sv = %s
+        """, (ma_sv,))
+        total_credit_hours = cur.fetchone()[0]  # Lấy tổng số tín chỉ từ kết quả truy vấn
+
+        conn.close()
+
+        return total_credit_hours if total_credit_hours else 0  # Trả về tổng số tín chỉ, nếu không có trả về 0
+    except mysql.connector.Error as e:
+        print("Error retrieving total credit hours:", e)
+        conn.close()
+        return 0  # Trả về 0 nếu có lỗi khi truy vấn cơ sở dữ liệu
+
+
 def get_ma_mon_values():
     conn = connection()
     if conn:
@@ -559,7 +737,6 @@ def get_ma_mon_values():
         finally:
             conn.close()
 
-    # Return an empty list if there was an issue with the database connection
     return []
 
 def get_ma_lop_values():
@@ -575,7 +752,6 @@ def get_ma_lop_values():
         finally:
             conn.close()
 
-    # Return an empty list if there was an issue with the database connection
     return []
 
 def update_sinhvien_combobox(event):
@@ -604,8 +780,19 @@ def get_sinhvien_by_lop(class_code):
             conn.close()
 
     return []
-#Common End##########################################################
 
+def generate_random_password():
+    # Generate a random password with a combination of letters, digits, and punctuation
+    password_length = 12  # Adjust the length as needed
+    characters = string.ascii_letters + string.digits + string.punctuation
+    new_password = ''.join(secrets.choice(characters) for _ in range(password_length))
+    return new_password
+
+def clse():
+    sys.exit() 
+# Common End ########################################################
+
+# Export Excel Start ################################################
 def xuat_tatca_sinhvien_diem():
     workbook = Workbook()
     global add_window 
@@ -643,50 +830,16 @@ def xuat_tatca_sinhvien_diem():
     excel_filename = "TatCaSinhVien_DiemHocPhan.xlsx"
     workbook.save(excel_filename)
     print(f"Excel file '{excel_filename}' exported successfully!")
-def clse():
-    sys.exit() 
-def add_sinhvien_window():
-    add_window = Toplevel(root)
-    add_window.title("Thêm Sinh Viên")
+    messagebox.showinfo(f"Export thành công", "File excel đã được export!")
 
-    Label(add_window, text="Mã SV:").grid(row=0, column=0, padx=10, pady=5)
-    ma_sv_entry = Entry(add_window, width=40)
-    ma_sv_entry.grid(row=0, column=1, padx=10, pady=5)
+# Export Excel End ################################################
 
-    Label(add_window, text="Họ và tên SV:").grid(row=1, column=0, padx=10, pady=5)
-    hoten_sv_entry = Entry(add_window, width=40)
-    hoten_sv_entry.grid(row=1, column=1, padx=10, pady=5)
+def main_window():
+    global login
+    # Đóng form login nếu hàm main_window được gọi thành công.
+    login.destroy()
 
-    Label(add_window, text="Ngày sinh (YYYY-MM-DD):").grid(row=2, column=0, padx=10, pady=5)
-    ngay_sinh_entry = Entry(add_window, width=40)
-    ngay_sinh_entry.grid(row=2, column=1, padx=10, pady=5)
-
-    Label(add_window, text="Giới tính (Nam/Nữ):").grid(row=3, column=0, padx=10, pady=5)
-    gioi_tinh_entry = Entry(add_window, width=40)
-    gioi_tinh_entry.grid(row=3, column=1, padx=10, pady=5)
-
-    Label(add_window, text="Dân tộc:").grid(row=4, column=0, padx=10, pady=5)
-    dan_toc_entry = Entry(add_window, width=40)
-    dan_toc_entry.grid(row=4, column=1, padx=10, pady=5)
-
-    Label(add_window, text="Nơi sinh:").grid(row=5, column=0, padx=10, pady=5)
-    noi_sinh_entry = Entry(add_window, width=40)
-    noi_sinh_entry.grid(row=5, column=1, padx=10, pady=5)
-
-    # Combobox get mã lớp
-    Label(add_window, text="Mã lớp:").grid(row=6, column=0, padx=10, pady=5)
-    ma_lop_values = get_ma_lop_values()
-    ma_lop_combobox = ttk.Combobox(add_window, values=ma_lop_values, width=37)
-    ma_lop_combobox.grid(row=6, column=1, padx=10, pady=5)
-
-    add_button = Button(add_window, text="Thêm Sinh Viên", command=lambda: add_sinhvien(
-        ma_sv_entry.get(), hoten_sv_entry.get(), ngay_sinh_entry.get(),
-        gioi_tinh_entry.get(), dan_toc_entry.get(), noi_sinh_entry.get(), ma_lop_combobox.get()
-    ), width=20)
-    add_button.grid(row=7, column=1, padx=10, pady=10)
-    # update_info_window()
-# Hãy thay đổi màu sắc cho các nút button trong hàm main:
-if __name__ == "__main__":
+    global root
     root = Tk()
     root.title("Quản lý điểm sinh viên")
 
@@ -724,3 +877,111 @@ if __name__ == "__main__":
 
     root.resizable(False, False)
     root.mainloop()
+def login_user():
+    username = entry_username.get()
+    password = entry_password.get()
+
+    # Add your login logic here (e.g., check username and password)
+    # For simplicity, let's assume any non-empty username/password is valid
+    conn = connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM dangnhap WHERE username=%s AND password=%s",(username, password))
+    user = cur.fetchone()
+    conn.close()
+
+    if user:
+        main_window()
+    else:
+        messagebox.showerror("Thông báo", "Tên đăng nhập hoặc mật khẩu không đúng")
+
+def reset_password_window():
+    global reset_gmail_entry
+    reset_password_window = Toplevel(login)
+    reset_password_window.title("Quên mật khẩu")
+
+     # Combobox get mã sinh viên
+    Label(reset_password_window, text="Hãy nhập gmail của bạn:").grid(row=0, column=0, padx=20, pady=5)
+    reset_gmail_entry = Entry(reset_password_window, width=40)
+    reset_gmail_entry.grid(row=1, column=0, padx=20, pady=5)
+    reset_password_button = Button(reset_password_window, text="Gửi mật khẩu đến gmail", command=reset_password, width=20, fg="blue")
+    reset_password_button.grid(row=3, column=0, columnspan=2, pady=10,padx=20)
+
+
+def send_reset_email(username, new_password):
+    # Replace these values with your email and SMTP server details
+    sender_email = "leesintocbien@gmail.com"
+    sender_password = "ucfb mezj rpgm miit"
+    smtp_server = "smtp.gmail.com"
+    smtp_port = 587
+
+    recipient_email = "baoquoc.job@gmail.com"
+    subject = "Password Reset"
+    body = f"Your new password is: {new_password}"
+
+    # Create the email content
+    message = MIMEText(body)
+    message["Subject"] = subject
+    message["From"] = sender_email
+    message["To"] = recipient_email
+
+    # Connect to the SMTP server and send the email
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, [recipient_email], message.as_string())
+
+def reset_password():
+    email = reset_gmail_entry.get()
+    # Random password mới để gửi đến mail
+    new_password = generate_random_password()
+
+    try:
+        # Update the password in the database
+        conn = connection()
+        cur = conn.cursor()
+        cur.execute("select emai from dangnhap where emai=%s", (email,))
+        email_result = cur.fetchone()
+        conn.commit()
+
+       # Cập nhật lại mật khẩu người quản lý trong hệ thống.
+        if email_result :
+            conn = connection()
+            cur = conn.cursor()
+            cur.execute("UPDATE dangnhap SET password=%s WHERE emai=%s", (new_password, email))
+            conn.commit()
+            conn.close()
+
+            # Send the new password via email
+            send_reset_email(email, new_password)
+
+            messagebox.showinfo("Thông báo", "Mật khẩu mới đã được gửi đến email của bạn.")
+        else :
+            messagebox.showinfo("Thông báo", "Có vẻ như thông tin đăng nhập của bạn không tồn tại trong hệ thống, hãy liên hệ bộ phận IT nhé.")
+    except Exception as e:
+        messagebox.showerror("Lỗi", f"Có lỗi xảy ra: {str(e)}")
+    finally:
+        conn.close()
+    
+
+if __name__ == "__main__":
+    login = Tk()
+    login.title("Đăng nhập vào hệ thống quản lý điểm")
+
+    label_username = Label(login, text="Tên đăng nhập:")
+    label_username.grid(row=0, column=0, padx=30, pady=40)
+    entry_username = Entry(login, width=40)
+    entry_username.grid(row=0, column=1, padx=30, pady=10)
+
+    label_password = Label(login, text="Mật khẩu:")
+    label_password.grid(row=1, column=0, padx=30, pady=10)
+    entry_password = Entry(login, show="*", width=40)
+    entry_password.grid(row=1, column=1, padx=30, pady=10)
+
+    b1 = Button(login, text="Đăng nhập", command=login_user, width=40, fg="green")
+    b1.grid(row=2, column=0, columnspan=2, pady=40)
+    # Add a "Forgot Password" button
+    b2 = Button(login, text="Quên mật khẩu", command=reset_password_window, width=40, fg="blue")
+    b2.grid(row=3, column=0, columnspan=2, pady=10)
+
+    login.resizable(False, False)
+    login.mainloop()
